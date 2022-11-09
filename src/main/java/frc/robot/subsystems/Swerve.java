@@ -15,7 +15,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Swerve extends SubsystemBase {
-    public SwerveDriveOdometry swerveOdometry;
     public SwerveModule[] mSwerveMods;
     public PigeonIMU gyro;
 
@@ -23,8 +22,6 @@ public class Swerve extends SubsystemBase {
         gyro = new PigeonIMU(Constants.Swerve.pigeonID);
         gyro.configFactoryDefault();
         zeroGyro();
-
-        swerveOdometry = new SwerveDriveOdometry(Constants.Swerve.swerveKinematics, getYaw());
 
         mSwerveMods = new SwerveModule[] {
                 new SwerveModule(0, Constants.Swerve.Mod0.constants),
@@ -48,39 +45,11 @@ public class Swerve extends SubsystemBase {
         }
     }
 
-    /* Used by SwerveControllerCommand in Auto */
-    public void setModuleStates(SwerveModuleState[] desiredStates) {
-        SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, Constants.Swerve.maxSpeed);
-
-        for (SwerveModule mod : mSwerveMods) {
-            mod.setDesiredState(desiredStates[mod.moduleNumber]);
-        }
-    }
-
-    public Pose2d getPose() {
-        return swerveOdometry.getPoseMeters();
-    }
-
-    public void resetOdometry(Pose2d pose) {
-        swerveOdometry.resetPosition(pose, getYaw());
-    }
-
-    public SwerveModuleState[] getStates() {
-        SwerveModuleState[] states = new SwerveModuleState[4];
-        for (SwerveModule mod : mSwerveMods) {
-            states[mod.moduleNumber] = mod.getState();
-        }
-        return states;
-    }
-
     public void zeroGyro() {
         gyro.setYaw(0);
     }
 
-    public Rotation2d 
-    
-    
-    getYaw() {
+    public Rotation2d getYaw() {
         double[] ypr = new double[3];
         gyro.getYawPitchRoll(ypr);
         return Rotation2d.fromDegrees(360 - ypr[0]);
@@ -88,11 +57,10 @@ public class Swerve extends SubsystemBase {
 
     @Override
     public void periodic() {
-        swerveOdometry.update(getYaw(), getStates());
-
+        SmartDashboard.putNumber("Yaw", getYaw().getDegrees());
         for (SwerveModule mod : mSwerveMods) {
             SmartDashboard.putNumber("Mod " + mod.moduleNumber + " Integrated",
-                    mod.getState().angle.getDegrees());
+                    mod.getEncoder());
             SmartDashboard.putNumber("Mod " + mod.moduleNumber + " Velocity",
                     mod.getState().speedMetersPerSecond);
         }

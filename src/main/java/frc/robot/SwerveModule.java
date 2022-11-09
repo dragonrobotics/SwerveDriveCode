@@ -1,7 +1,9 @@
 package frc.robot;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.lib.util.CTREModuleState;
 import frc.lib.util.SwerveModuleConstants;
 import com.revrobotics.CANSparkMax;
@@ -21,29 +23,30 @@ public class SwerveModule {
     private double lastAngle = 0;
     private RelativeEncoder encoder;
 
-    private double neoToMPS(double sensorVelocity, double wheelCircumference, double gearRatio) {
-        double motorRPM = sensorVelocity * (600.0 / 2048.0) / gearRatio * wheelCircumference / 60;
-        return motorRPM;
+    public double encoderToDegrees(double ticks, double gearRatio) {
+        double degrees = ((ticks-mConstants.angleOffset) / 1096)*-360;
+        if (mConstants.angleInverted)
+            degrees = degrees * -1;
+        return degrees+90;
     }
 
-    public static double encoderToDegrees(double counts, double gearRatio) {
-        return counts * (360.0 / (gearRatio * 2048.0));
-    }
+    public double degreesToEncoder(double degrees, double gearRatio) {
+        double ticks = (-(degrees-90) / 360) * 1096;
+        if (mConstants.angleInverted)
+            ticks = ticks * -1;
 
-    public static double degreesToEncoder(double degrees, double gearRatio) {
-        double ticks = degrees / (360.0 / (gearRatio * 2048.0));
-        return ticks;
+
+        return ticks + mConstants.angleOffset;
     }
 
     private void configDriveMotor() {
         driveMotor.restoreFactoryDefaults();
         encoder = driveMotor.getEncoder();
-        encoder.setInverted(false);
-        driveMotor.setFeedbackDevice(encoder);
+        driveMotor.setInverted(mConstants.motorInverted);
     }
 
     private void configTurnMotor() {
-        turnMotor.setSensorPhase(mConstants.angleInverted);
+        turnMotor.setSensorPhase(mConstants.angleSensorInverted);
         turnMotor.configSelectedFeedbackSensor(FeedbackDevice.Analog);
         turnMotor.config_kP(0, Constants.Swerve.angleKP);
         turnMotor.config_kD(0, Constants.Swerve.angleKD);
@@ -63,37 +66,45 @@ public class SwerveModule {
         moduleNumber = moduleId;
         mConstants = constants;
         turnMotor = new WPI_TalonSRX(mConstants.angleMotorID);
-        configDriveMotor();
         driveMotor = new CANSparkMax(mConstants.driveMotorID, MotorType.kBrushless);
+        configDriveMotor();
         configTurnMotor();
         drivePidController = driveMotor.getPIDController();
         configPidController();
     }
 
-    public void setDesiredState(SwerveModuleState swerveModuleState) {
-        SwerveModuleState desiredState = CTREModuleState.optimize(swerveModuleState, getState().angle);
-        double velocity = MPSToNeo(desiredState.speedMetersPerSecond, Constants.Swerve.wheelCircumference,
+    public void setDesiredState(SwerveModuleState swerveModuleState) { 
+        SwerveModuleState desiredState = SwerveModuleState.optimize(swerveModuleState, getState().angle);
+        SmartDashboard.putNumber("Mod" + moduleNumber + " Target Angle", desiredState.angle.getDegrees());
+        SmartDashboard.putNumber("Mod" + moduleNumber + " Target Speed", desiredState.speedMetersPerSecond);
+        double velocity = MPSToNeo(desiredState.speedMetersPerSecond,
+                Constants.Swerve.wheelCircumference,
                 Constants.Swerve.driveGearRatio);
-        drivePidController.setReference(.001, CANSparkMax.ControlType.kVelocity);
+        drivePidController.setReference(velocity, CANSparkMax.ControlType.kVelocity);
 
-        double angle = (Math.abs(desiredState.speedMetersPerSecond) <= (Constants.Swerve.maxSpeed * 0.01)) ? lastAngle
-                : desiredState.angle.getDegrees(); // Prevent rotating module if speed is less then 1%. Prevents
-                                                   // Jittering.
-        //turnMotor.set(ControlMode.Position, degreesToEncoder(angle, Constants.Swerve.angleGearRatio));
-        lastAngle = angle;
+        turnMotor.set(ControlMode.Position, degreesToEncoder(desiredState.angle.getDegrees(),
+                Constants.Swerve.angleGearRatio));
     }
 
     private double MPSToNeo(double speedMetersPerSecond, double wheelcircumference, double drivegearratio) {
-        return speedMetersPerSecond*60*(drivegearratio*wheelcircumference)*(600.0 / 2048.0);
+        return ((((speedMetersPerSecond * 1000 / wheelcircumference) / drivegearratio) * 60) / 8.5) * 1.64;
+    }
+
+    private double neoToMPS(double sensorVelocity, double wheelCircumference, double drivegearratio) {
+        return ((sensorVelocity*4)/1.64 * 8.5 / 60) * drivegearratio * wheelCircumference / 1000;
     }
 
     public SwerveModuleState getState() {
-        double velocity = driveMotor.getEncoder().getVelocity();
-        Rotation2d angle = Rotation2d.fromDegrees(turnMotor.getSelectedSensorPosition());
+        double velocity = neoToMPS(driveMotor.getEncoder().getVelocity(), Constants.Swerve.wheelCircumference, Constants.Swerve.driveGearRatio);
+        Rotation2d angle = Rotation2d.fromDegrees(encoderToDegrees(turnMotor.getSelectedSensorPosition(),0));
         return new SwerveModuleState(velocity, angle);
     }
 
     public void setWheelAngle(int i) {
         turnMotor.setSelectedSensorPosition(i);
+    }
+
+    public double getEncoder() {
+        return turnMotor.getSelectedSensorPosition();
     }
 }
