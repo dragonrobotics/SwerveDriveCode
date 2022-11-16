@@ -22,7 +22,7 @@ public class TeleopSwerve extends CommandBase {
     /**
      * Driver control
      */
-    public TeleopSwerve(Swerve s_Swerve, Joystick controller, int translationAxis, int strafeAxis, int rotationAxis) {
+    public TeleopSwerve(Swerve s_Swerve, Joystick controller, int strafeAxis, int translationAxis, int rotationAxis) {
         this.s_Swerve = s_Swerve;
         addRequirements(s_Swerve);
 
@@ -41,14 +41,14 @@ public class TeleopSwerve extends CommandBase {
         /* Deadbands */
         yAxis = (Math.abs(yAxis) < Constants.stickDeadband) ? 0 : yAxis;
         xAxis = (Math.abs(xAxis) < Constants.stickDeadband) ? 0 : xAxis;
-        rAxis = (Math.abs(rAxis) < Constants.stickDeadband) ? 0 : rAxis;
-
+        rAxis = (Math.abs(rAxis) < Constants.turnstickDeadband) ? 0 : rAxis;
         SmartDashboard.putNumber("yAxis", yAxis);
         SmartDashboard.putNumber("xAxis", xAxis);
         SmartDashboard.putNumber("rAxis", rAxis);
 
         translation = new Translation2d(yAxis, xAxis).times(Constants.Swerve.maxSpeed);
         rotation = rAxis * Constants.Swerve.maxAngularVelocity;
+        SmartDashboard.putNumber("Rotation", rotation);
         s_Swerve.drive(translation, rotation);
     }
 }

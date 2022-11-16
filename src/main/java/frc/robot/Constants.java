@@ -6,13 +6,13 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import frc.lib.util.SwerveModuleConstants;
 
 public final class Constants {
-    public static final double stickDeadband = 0.1;
+    public static final double stickDeadband = 0.05;
+    public static final double turnstickDeadband = .2;
 
     public static final class Swerve {
         public static final int pigeonID = 0;
 
         /* Drivetrain Constants */
-        // TODO: GET NUMBERS YOU DIPSHIT
         public static final double trackWidth = .6725;
         public static final double wheelBase = .59;
         public static final double wheelDiameter = .1;
@@ -25,10 +25,10 @@ public final class Constants {
         public static final double angleGearRatio = (1.2 / 1.0); // 12.8:1
 
         public static final SwerveDriveKinematics swerveKinematics = new SwerveDriveKinematics(
-                new Translation2d(wheelBase / 2.0, trackWidth / 2.0),
                 new Translation2d(wheelBase / 2.0, -trackWidth / 2.0),
-                new Translation2d(-wheelBase / 2.0, trackWidth / 2.0),
-                new Translation2d(-wheelBase / 2.0, -trackWidth / 2.0));
+                new Translation2d(wheelBase / 2.0, trackWidth / 2.0),
+                new Translation2d(-wheelBase / 2.0, -trackWidth / 2.0),
+                new Translation2d(-wheelBase / 2.0, trackWidth / 2.0));
 
         /* Swerve Current Limiting */
         public static final int angleContinuousCurrentLimit = 25;
@@ -65,7 +65,7 @@ public final class Constants {
             public static final boolean motorInverted = true;
             public static final boolean angleInverted = true;
             public static final int angleMotorID = 16;
-            public static final double angleOffset = -413;
+            public static final double angleOffset = 245;
             public static final SwerveModuleConstants constants = new SwerveModuleConstants(driveMotorID, angleMotorID,
                     angleOffset, angleSensorInverted, motorInverted, angleInverted);
         }

@@ -24,18 +24,16 @@ public class SwerveModule {
     private RelativeEncoder encoder;
 
     public double encoderToDegrees(double ticks, double gearRatio) {
-        double degrees = ((ticks-mConstants.angleOffset) / 1096)*-360;
+        double degrees = ((ticks - mConstants.angleOffset) / 1024) * -360;
         if (mConstants.angleInverted)
             degrees = degrees * -1;
-        return degrees+90;
+        return degrees;
     }
 
     public double degreesToEncoder(double degrees, double gearRatio) {
-        double ticks = (-(degrees-90) / 360) * 1096;
+        double ticks = (-(degrees) / 360) * 1024;
         if (mConstants.angleInverted)
             ticks = ticks * -1;
-
-
         return ticks + mConstants.angleOffset;
     }
 
@@ -73,8 +71,8 @@ public class SwerveModule {
         configPidController();
     }
 
-    public void setDesiredState(SwerveModuleState swerveModuleState) { 
-        SwerveModuleState desiredState = SwerveModuleState.optimize(swerveModuleState, getState().angle);
+    public void setDesiredState(SwerveModuleState swerveModuleState) {
+        SwerveModuleState desiredState = CTREModuleState.optimize(swerveModuleState, getState().angle);
         SmartDashboard.putNumber("Mod" + moduleNumber + " Target Angle", desiredState.angle.getDegrees());
         SmartDashboard.putNumber("Mod" + moduleNumber + " Target Speed", desiredState.speedMetersPerSecond);
         double velocity = MPSToNeo(desiredState.speedMetersPerSecond,
@@ -91,12 +89,13 @@ public class SwerveModule {
     }
 
     private double neoToMPS(double sensorVelocity, double wheelCircumference, double drivegearratio) {
-        return ((sensorVelocity*4)/1.64 * 8.5 / 60) * drivegearratio * wheelCircumference / 1000;
+        return ((sensorVelocity * 4) / 1.64 * 8.5 / 60) * drivegearratio * wheelCircumference / 1000;
     }
 
     public SwerveModuleState getState() {
-        double velocity = neoToMPS(driveMotor.getEncoder().getVelocity(), Constants.Swerve.wheelCircumference, Constants.Swerve.driveGearRatio);
-        Rotation2d angle = Rotation2d.fromDegrees(encoderToDegrees(turnMotor.getSelectedSensorPosition(),0));
+        double velocity = neoToMPS(driveMotor.getEncoder().getVelocity(), Constants.Swerve.wheelCircumference,
+                Constants.Swerve.driveGearRatio);
+        Rotation2d angle = Rotation2d.fromDegrees(encoderToDegrees(turnMotor.getSelectedSensorPosition(), 0));
         return new SwerveModuleState(velocity, angle);
     }
 
