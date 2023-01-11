@@ -3,11 +3,12 @@ package frc.robot;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import frc.lib.util.SwerveModuleConstants;
 
 public final class Constants {
-    public static final double stickDeadband = 0.05;
-    public static final double turnstickDeadband = .2;
+    public static final double stickDeadband = 0.00;
+    public static final double turnstickDeadband = .00;
 
     public static final class Swerve {
         public static final int pigeonID = 0;
@@ -54,8 +55,8 @@ public final class Constants {
         public static final double driveKF = 0.00017;
 
         /* Swerve Profiling Values */
-        public static final double maxSpeed = 4.5; // meters per second
-        public static final double maxAngularVelocity = 11.5;
+        public static double maxSpeed = 10; // meters per second
+        public static double maxAngularVelocity = 5;
 
         /* Module Specific Constants */
         /* Front Left Module - Module 0 */

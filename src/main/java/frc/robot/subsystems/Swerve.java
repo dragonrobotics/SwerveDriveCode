@@ -17,8 +17,11 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class Swerve extends SubsystemBase {
     public SwerveModule[] mSwerveMods;
     public PigeonIMU gyro;
+    private final SwerveDriveOdometry swerveDriveOdometry;
+
 
     public Swerve() {
+        swerveDriveOdometry = new SwerveDriveOdometry(Constants.Swerve.swerveKinematics, getPitch(), );
         gyro = new PigeonIMU(Constants.Swerve.pigeonID);
         gyro.configFactoryDefault();
         zeroGyro();
@@ -31,6 +34,9 @@ public class Swerve extends SubsystemBase {
                 new SwerveModule(2, Constants.Swerve.Mod2.constants),
                 new SwerveModule(3, Constants.Swerve.Mod3.constants)
         };
+    }
+    public SwerveModuleState[] getModuleStates(){
+        SwerveModuleState[] states;
     }
 
     public void drive(Translation2d translation, double rotation) {
@@ -57,10 +63,22 @@ public class Swerve extends SubsystemBase {
         gyro.getYawPitchRoll(ypr);
         return Rotation2d.fromDegrees(360 - ypr[0]);
     }
+    public Rotation2d getPitch() {
+        double[] ypr = new double[3];
+        gyro.getYawPitchRoll(ypr);
+        return Rotation2d.fromDegrees(360 - ypr[1]);
+    }
+    public Rotation2d getRoll() {
+        double[] ypr = new double[3];
+        gyro.getYawPitchRoll(ypr);
+        return Rotation2d.fromDegrees(360 - ypr[2]);
+    }
 
     @Override
     public void periodic() {
         SmartDashboard.putNumber("Yaw", getYaw().getDegrees());
+        SmartDashboard.putNumber("Pitch", getPitch().getDegrees());
+        SmartDashboard.putNumber("Roll", getRoll().getDegrees());
         for (SwerveModule mod : mSwerveMods) {
             SmartDashboard.putNumber("Mod " + mod.moduleNumber + " Integrated",
                     mod.getEncoder());

@@ -30,14 +30,20 @@ public class TeleopSwerve extends CommandBase {
         this.translationAxis = translationAxis;
         this.strafeAxis = strafeAxis;
         this.rotationAxis = rotationAxis;
+        SmartDashboard.putNumber("maxSpeed", Constants.Swerve.maxSpeed);
+        SmartDashboard.putNumber("maxAngularVelocity", Constants.Swerve.maxAngularVelocity);
     }
 
     @Override
     public void execute() {
-        double yAxis = -controller.getRawAxis(translationAxis);
+        double yAxis = controller.getRawAxis(translationAxis);
         double xAxis = -controller.getRawAxis(strafeAxis);
         double rAxis = -controller.getRawAxis(rotationAxis);
-        
+        yAxis = Math.pow(yAxis, 3);
+        xAxis = Math.pow(xAxis, 3);
+        rAxis = Math.pow(rAxis, 3);
+        Constants.Swerve.maxSpeed = SmartDashboard.getNumber("maxSpeed", Constants.Swerve.maxSpeed);
+        Constants.Swerve.maxAngularVelocity = SmartDashboard.getNumber("maxAngularVelocity", Constants.Swerve.maxAngularVelocity);
         /* Deadbands */
         yAxis = (Math.abs(yAxis) < Constants.stickDeadband) ? 0 : yAxis;
         xAxis = (Math.abs(xAxis) < Constants.stickDeadband) ? 0 : xAxis;
