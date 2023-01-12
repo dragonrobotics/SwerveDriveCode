@@ -19,7 +19,7 @@ public class RobotContainer {
   private void configureButtonBindings() {
     swerve.setDefaultCommand(teleopSwerve);
     JoystickButton reset_button = new JoystickButton(joystick, 1);
-    reset_button.onTrue(Commands.run(() -> swerve.gyro.setYaw(0), swerve));
+    reset_button.onTrue(Commands.run(() -> swerve.gyro.setYaw(0)));
 
   }
 

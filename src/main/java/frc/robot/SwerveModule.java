@@ -1,11 +1,14 @@
 package frc.robot;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.lib.util.CTREModuleState;
 import frc.lib.util.SwerveModuleConstants;
+
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
@@ -94,14 +97,23 @@ public class SwerveModule {
     }
 
     private double neoToMPS(double sensorVelocity, double wheelCircumference, double drivegearratio) {
-        return ((sensorVelocity * 4) / 1.64 * 8.5) * drivegearratio * wheelCircumference / 1000;
+        return ((sensorVelocity * 4) / 1.64 * 8.5 / 60) * drivegearratio * wheelCircumference / 1000;
+    }
+    private double neoToM(double sensorDistance, double wheelCircumference, double drivegearratio){
+        return ((sensorDistance * 4) / 1.64 * 8.5) * drivegearratio * wheelCircumference / 1000;
     }
 
     public SwerveModuleState getState() {
-        double velocity = neoToMPS(driveMotor.getAbsoluteEncoder(Type.kDutyCycle).getPosition(),Constants.Swerve.wheelCircumference,
-        Constants.Swerve.driveGearRatio);
+        double velocity = neoToMPS(driveMotor.getEncoder().getVelocity(), Constants.Swerve.wheelCircumference,
+                Constants.Swerve.driveGearRatio);
         Rotation2d angle = Rotation2d.fromDegrees(encoderToDegrees(turnMotor.getSelectedSensorPosition(), 0));
         return new SwerveModuleState(velocity, angle);
+    }
+    public SwerveModulePosition getPosition() {
+        double position = neoToM(driveMotor.getEncoder().getPosition(),Constants.Swerve.wheelCircumference,
+        Constants.Swerve.driveGearRatio);
+        Rotation2d angle = Rotation2d.fromDegrees(encoderToDegrees(turnMotor.getSelectedSensorPosition(), 0));
+        return new SwerveModulePosition(position, angle);
     }
 
     public void setWheelAngle(int i) {
