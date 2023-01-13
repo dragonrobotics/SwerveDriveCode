@@ -34,12 +34,30 @@ public class Swerve extends SubsystemBase {
                 new SwerveModule(2, Constants.Swerve.Mod2.constants),
                 new SwerveModule(3, Constants.Swerve.Mod3.constants)
         };
-        swerveDriveOdometry = new SwerveDriveOdometry(Constants.Swerve.swerveKinematics, getPitch(), new SwerveModulePosition[] {
+        swerveDriveOdometry = new SwerveDriveOdometry(Constants.Swerve.swerveKinematics, getYaw(), new SwerveModulePosition[] {
             mSwerveMods[0].getPosition(),
             mSwerveMods[1].getPosition(),
             mSwerveMods[2].getPosition(),
             mSwerveMods[3].getPosition()
           });
+    }
+
+    public Pose2d getPose(){
+        return swerveDriveOdometry.getPoseMeters();
+    }
+    public void resetPose(Pose2d pose){
+        swerveDriveOdometry.resetPosition(getYaw(), new SwerveModulePosition[] {
+            mSwerveMods[0].getPosition(),
+            mSwerveMods[1].getPosition(),
+            mSwerveMods[2].getPosition(),
+            mSwerveMods[3].getPosition()
+          }, pose);;
+    }
+
+    public void setModuleStates(SwerveModuleState[] moduleStates){
+        for (SwerveModule mod : mSwerveMods) {
+            mod.setDesiredState(moduleStates[mod.moduleNumber]);
+        }
     }
 
     public void drive(Translation2d translation, double rotation) {
@@ -55,6 +73,7 @@ public class Swerve extends SubsystemBase {
         for (SwerveModule mod : mSwerveMods) {
             mod.setDesiredState(swerveModuleStates[mod.moduleNumber]);
         }
+
     }
 
     public void zeroGyro() {
@@ -83,10 +102,8 @@ public class Swerve extends SubsystemBase {
         SmartDashboard.putNumber("Pitch", getPitch().getDegrees());
         SmartDashboard.putNumber("Roll", getRoll().getDegrees());
 
-      var gyroAngle = new Rotation2d(gyro.getPitch());
-
       // Update the pose
-        swerveDriveOdometry.update(gyroAngle,
+        swerveDriveOdometry.update(getYaw(),
         new SwerveModulePosition[] {
             mSwerveMods[0].getPosition(),
             mSwerveMods[1].getPosition(),
